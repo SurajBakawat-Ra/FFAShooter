@@ -186,9 +186,6 @@ void AShooterCharacter::CheckZoomAndStamina(float DeltaTimer)
 		CurrentStamina += DeltaTimer;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("CurrentStamina: %f"), CurrentStamina);
-
-
 	if (FollowCamera->FieldOfView != TargetFOV)
 	{
 		float NewFOV = FMath::FInterpTo(FollowCamera->FieldOfView, TargetFOV, DeltaTimer, ZoomInterpSpeed);

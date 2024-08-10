@@ -3,11 +3,18 @@
 
 #include "FFAGameMode.h"
 #include "HealthComponent.h"
+#include "ShooterCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 
 AFFAGameMode::AFFAGameMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AFFAGameMode::BeginPlay()
+{
+	ConfigureAllCharacters();
 }
 
 void AFFAGameMode::Tick(float DeltaTime)
@@ -47,4 +54,42 @@ void AFFAGameMode::RestartDeadPlayers()
 	//		RestartPlayer(PC);
 	//	}
 	//}
+}
+
+void AFFAGameMode::ConfigureAllCharacters()
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShooterCharacter::StaticClass(), FoundActors);
+
+	CharacterList.Empty();
+
+	for (int i = 0; i < FoundActors.Num(); i++)
+	{
+		FString RandomName = "NONE";
+
+		while (CheckCharacterWithNamesExist(RandomName))
+		{
+			int32 RandomIndex = FMath::RandRange(0, CharacterNames.Num() - 1);
+			RandomName = CharacterNames[RandomIndex];
+		}
+
+		CharacterList.Add(Cast<AShooterCharacter>(FoundActors[i]));
+
+		CharacterList[i]->InGameName = RandomName;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Total Characters: %d"), CharacterList.Num());
+}
+
+bool AFFAGameMode::CheckCharacterWithNamesExist(FString Name)
+{
+	for (int i = 0; i < CharacterList.Num(); i++)
+	{
+		if (CharacterList[i]->InGameName.Equals(Name))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

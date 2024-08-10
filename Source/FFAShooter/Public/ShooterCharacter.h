@@ -126,4 +126,10 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
+#pragma region GameModeVariables
+
+	FString InGameName;
+
+#pragma endregion
+
 };
