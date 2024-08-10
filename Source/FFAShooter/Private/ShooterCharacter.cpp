@@ -10,6 +10,7 @@
 #include "FFAShooter.h"
 #include "HealthComponent.h"
 #include "BaseWeapon.h"
+#include "FFAGameMode.h"
 
 #pragma region Init
 
@@ -59,6 +60,8 @@ void AShooterCharacter::BeginPlay()
 		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
+
+	InputAllowed = true;
 }
 
 #pragma endregion
@@ -94,17 +97,20 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void AShooterCharacter::MoveForward(float Val)
 {
-	AddMovementInput(GetActorForwardVector() * Val);
+	if(InputAllowed)
+		AddMovementInput(GetActorForwardVector() * Val);
 }
 
 void AShooterCharacter::MoveRight(float Val)
 {
-	AddMovementInput(GetActorRightVector() * Val);
+	if (InputAllowed)
+		AddMovementInput(GetActorRightVector() * Val);
 }
 
 void AShooterCharacter::BeginCrouch()
 {
-	Crouch();
+	if (InputAllowed)
+		Crouch();
 }
 
 void AShooterCharacter::EndCrouch()
@@ -114,7 +120,7 @@ void AShooterCharacter::EndCrouch()
 
 void AShooterCharacter::StartReload()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon && InputAllowed)
 	{
 		CurrentWeapon->StartReload();
 	}
@@ -122,7 +128,7 @@ void AShooterCharacter::StartReload()
 
 void AShooterCharacter::Sprint()
 {
-	if (CurrentStamina > 0 && !(GetCharacterMovement()->MovementMode == MOVE_None))
+	if (CurrentStamina > 0 && !(GetCharacterMovement()->MovementMode == MOVE_None) && InputAllowed)
 	{
 		IsSprinting = true;
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed * SprintSpeedMultiplier;
@@ -137,7 +143,7 @@ void AShooterCharacter::StopSprint()
 
 void AShooterCharacter::BeginZoom()
 {
-	if(!bDied)
+	if(InputAllowed)
 		bWantsToZoom = true;
 }
 
@@ -148,7 +154,7 @@ void AShooterCharacter::EndZoom()
 
 void AShooterCharacter::StartFire()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon && InputAllowed)
 	{
 		CurrentWeapon->StartFire();
 	}
@@ -200,25 +206,21 @@ void AShooterCharacter::OnHealthChanged(UHealthComponent* HealthComponent, float
 	{
 		bDied = true;
 
-		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		GetCharacterMovement()->DisableMovement();
-
-		if (GetController()->IsPlayerController())
-		{
-			if (Cast<APlayerController>(GetController()))
-			{
-				DisableInput(Cast<APlayerController>(GetController()));
-			}
-		}
+		SetAllowInput(false);
 
 		CurrentWeapon->Destroy();
 
+		Cast<AShooterCharacter>(InstigatedBy->GetCharacter())->CurrentPoints++;
+
 		OnDeath.Broadcast(this, Cast<AShooterCharacter>(InstigatedBy->GetCharacter()));
 
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AShooterCharacter::SpawnPlayer, 5.0f, false);
+		if (!((AFFAGameMode*)GetWorld()->GetAuthGameMode())->CheckGameFinish(Cast<AShooterCharacter>(InstigatedBy->GetCharacter())))
+		{
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AShooterCharacter::SpawnPlayer, 5.0f, false);
+		}
 	}
 }
 
@@ -232,15 +234,7 @@ void AShooterCharacter::SpawnPlayer()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	GetCharacterMovement()->SetDefaultMovementMode();
-
-	if (GetController()->IsPlayerController())
-	{
-		if (Cast<APlayerController>(GetController()))
-		{
-			EnableInput(Cast<APlayerController>(GetController()));
-		}
-	}
+	SetAllowInput(true);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -254,6 +248,8 @@ void AShooterCharacter::SpawnPlayer()
 		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
+
+	((AFFAGameMode*)GetWorld()->GetAuthGameMode())->SpawnAtRandomPoint(this);
 }
 
 FVector AShooterCharacter::GetPawnViewLocation() const
@@ -266,5 +262,37 @@ FVector AShooterCharacter::GetPawnViewLocation() const
 
 	//If for some reason this fails, return the original character view location.
 	return Super::GetPawnViewLocation();
+}
+
+void AShooterCharacter::SetAllowInput(bool Allow)
+{
+	InputAllowed = Allow;
+
+	if (Allow)
+	{
+		GetCharacterMovement()->SetDefaultMovementMode();
+
+		if (GetController()->IsPlayerController())
+		{
+			if (Cast<APlayerController>(GetController()))
+			{
+				EnableInput(Cast<APlayerController>(GetController()));
+			}
+		}
+	}
+	else
+	{
+		GetMovementComponent()->StopMovementImmediately();
+
+		GetCharacterMovement()->DisableMovement();
+
+		if (GetController()->IsPlayerController())
+		{
+			if (Cast<APlayerController>(GetController()))
+			{
+				DisableInput(Cast<APlayerController>(GetController()));
+			}
+		}
+	}
 }
 

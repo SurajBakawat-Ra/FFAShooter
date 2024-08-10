@@ -109,6 +109,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	bool bDied;
 
+	UPROPERTY()
+	bool InputAllowed;
+
 	UFUNCTION()
 	void OnHealthChanged(UHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
@@ -126,9 +129,13 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
+	void SetAllowInput(bool Allow);
+
 #pragma region GameModeVariables
 
 	FString InGameName;
+
+	int CurrentPoints;
 
 #pragma endregion
 

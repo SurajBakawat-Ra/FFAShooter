@@ -6,8 +6,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "FFAGameMode.generated.h"
 
-
 class AShooterCharacter;
+class ASpawnPointActor;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterWin, AShooterCharacter*, ShooterCharacter);
 /**
  * 
  */
@@ -29,14 +31,27 @@ protected:
 
 	void CheckAnyPlayerAlive();
 	void RestartDeadPlayers();
-
-	void ConfigureAllCharacters();
+	void ConfigureGameStart();
 	bool CheckCharacterWithNamesExist(FString Name);
 
+	UPROPERTY()
+	int MaxPoints;
+
+	UPROPERTY()
+	TArray<ASpawnPointActor*> SpawnPoints;
+
+	UPROPERTY()
 	TArray<FString> CharacterNames{ "John", "Kevin", "Ryan", "Michael", "David", "James", "Daniel", "Matthew", "Andrew", "Christopher", "Joshua", "Joseph", "Robert", "Brian", "William", "Thomas", "Anthony", "Jason", "Charles", "Steven", "Mark", "Paul", "Timothy", "Richard", "Eric", "George", "Scott", "Justin", "Stephen", "Alexander" };
 
 public:
 
 	UPROPERTY()
 	TArray<AShooterCharacter*> CharacterList;
+
+	bool CheckGameFinish(AShooterCharacter* ShooterCharacter);
+
+	void SpawnAtRandomPoint(AShooterCharacter* ShooterCharacter);
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCharacterWin OnCharacterWin;
 };

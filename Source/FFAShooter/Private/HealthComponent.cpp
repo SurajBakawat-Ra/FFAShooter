@@ -37,9 +37,9 @@ void UHealthComponent::Heal(float HealAmount)
 		return;
 	}
 
-#if UE_EDITOR
-	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %s (+%s)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount));
-#endif
+//#if UE_EDITOR
+//	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %s (+%s)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount));
+//#endif
 
 	Health = FMath::Clamp(Health + HealAmount, 0.0f, DefaultHealth);
 	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);

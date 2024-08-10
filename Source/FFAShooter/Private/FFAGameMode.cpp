@@ -4,17 +4,19 @@
 #include "FFAGameMode.h"
 #include "HealthComponent.h"
 #include "ShooterCharacter.h"
+#include "SpawnPointActor.h"
 #include "Kismet/GameplayStatics.h"
 
 
 AFFAGameMode::AFFAGameMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	MaxPoints = 5;
 }
 
 void AFFAGameMode::BeginPlay()
 {
-	ConfigureAllCharacters();
+	ConfigureGameStart();
 }
 
 void AFFAGameMode::Tick(float DeltaTime)
@@ -56,29 +58,46 @@ void AFFAGameMode::RestartDeadPlayers()
 	//}
 }
 
-void AFFAGameMode::ConfigureAllCharacters()
+void AFFAGameMode::ConfigureGameStart()
 {
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShooterCharacter::StaticClass(), FoundActors);
+	TArray<AActor*> FoundSpawnPoints;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnPointActor::StaticClass(), FoundSpawnPoints);
+
+	SpawnPoints.Empty();
+
+	for (int i = 0; i < FoundSpawnPoints.Num(); i++)
+	{
+		SpawnPoints.Add(Cast<ASpawnPointActor>(FoundSpawnPoints[i]));
+	}
+
+	TArray<AActor*> FoundCharacters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AShooterCharacter::StaticClass(), FoundCharacters);
 
 	CharacterList.Empty();
 
-	for (int i = 0; i < FoundActors.Num(); i++)
+	for (int i = 0; i < FoundCharacters.Num(); i++)
 	{
 		FString RandomName = "NONE";
 
-		while (CheckCharacterWithNamesExist(RandomName))
+		while (CheckCharacterWithNamesExist(RandomName) || RandomName.Equals("NONE"))
 		{
 			int32 RandomIndex = FMath::RandRange(0, CharacterNames.Num() - 1);
 			RandomName = CharacterNames[RandomIndex];
 		}
 
-		CharacterList.Add(Cast<AShooterCharacter>(FoundActors[i]));
+		CharacterList.Add(Cast<AShooterCharacter>(FoundCharacters[i]));
 
 		CharacterList[i]->InGameName = RandomName;
-	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Total Characters: %d"), CharacterList.Num());
+		if (FoundSpawnPoints.Num() > 0)
+		{
+			int32 RandomSpawnIndex = FMath::RandRange(0, FoundSpawnPoints.Num() - 1);
+			CharacterList[i]->SetActorLocation(FoundSpawnPoints[RandomSpawnIndex]->GetActorLocation());
+			FoundSpawnPoints.RemoveAt(RandomSpawnIndex);
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Character: %d, Name: %s"), CharacterList.Num(), *RandomName);
+	}
 }
 
 bool AFFAGameMode::CheckCharacterWithNamesExist(FString Name)
@@ -92,4 +111,29 @@ bool AFFAGameMode::CheckCharacterWithNamesExist(FString Name)
 	}
 
 	return false;
+}
+
+bool AFFAGameMode::CheckGameFinish(AShooterCharacter* ShooterCharacter)
+{
+	if (ShooterCharacter->CurrentPoints >= MaxPoints)
+	{
+		for (int i = 0; i < CharacterList.Num(); i++)
+		{
+			CharacterList[i]->SetAllowInput(false);
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Winner: %s"), *ShooterCharacter->InGameName);
+
+		OnCharacterWin.Broadcast(ShooterCharacter);
+
+		return true;
+	}
+
+	return false;
+}
+
+void AFFAGameMode::SpawnAtRandomPoint(AShooterCharacter* ShooterCharacter)
+{
+	int32 RandomSpawnIndex = FMath::RandRange(0, SpawnPoints.Num() - 1);
+	ShooterCharacter->SetActorLocation(SpawnPoints[RandomSpawnIndex]->GetActorLocation());
 }
