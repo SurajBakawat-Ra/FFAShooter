@@ -114,7 +114,10 @@ void AShooterCharacter::EndCrouch()
 
 void AShooterCharacter::StartReload()
 {
-	CurrentWeapon->StartReload();
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartReload();
+	}
 }
 
 void AShooterCharacter::Sprint()
@@ -134,7 +137,8 @@ void AShooterCharacter::StopSprint()
 
 void AShooterCharacter::BeginZoom()
 {
-	bWantsToZoom = true;
+	if(!bDied)
+		bWantsToZoom = true;
 }
 
 void AShooterCharacter::EndZoom()
@@ -202,11 +206,56 @@ void AShooterCharacter::OnHealthChanged(UHealthComponent* HealthComponent, float
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		DetachFromControllerPendingDestroy();
+		GetCharacterMovement()->DisableMovement();
+
+		if (GetController()->IsPlayerController())
+		{
+			if (Cast<APlayerController>(GetController()))
+			{
+				DisableInput(Cast<APlayerController>(GetController()));
+			}
+		}
 
 		CurrentWeapon->Destroy();
 
-		SetLifeSpan(10.0f);
+		OnDeath.Broadcast(this, Cast<AShooterCharacter>(InstigatedBy->GetCharacter()));
+
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AShooterCharacter::SpawnPlayer, 5.0f, false);
+	}
+}
+
+void AShooterCharacter::SpawnPlayer()
+{
+	bDied = false;
+
+	OnSpawn.Broadcast(this);
+
+	HealthComp->SetFullHealth();
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	GetCharacterMovement()->SetDefaultMovementMode();
+
+	if (GetController()->IsPlayerController())
+	{
+		if (Cast<APlayerController>(GetController()))
+		{
+			EnableInput(Cast<APlayerController>(GetController()));
+		}
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+	CurrentWeapon = GetWorld()->SpawnActor<ABaseWeapon>(StarterWeaponClass, FVector::ZeroVector,
+		FRotator::ZeroRotator, SpawnParams);
+
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
 }
 

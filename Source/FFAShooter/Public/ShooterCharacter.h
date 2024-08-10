@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "ShooterCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCharacterDeath, AShooterCharacter*, KilledCharacter, AShooterCharacter*, Killer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterSpawn, AShooterCharacter*, ShooterCharacter);
+
 class ABaseWeapon;
 
 UCLASS()
@@ -109,7 +112,17 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(UHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
+	UFUNCTION()
+	void SpawnPlayer();
+
+
 public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCharacterDeath OnDeath;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCharacterSpawn OnSpawn;
 
 	virtual FVector GetPawnViewLocation() const override;
 

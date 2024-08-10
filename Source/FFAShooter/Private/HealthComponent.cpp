@@ -45,3 +45,10 @@ void UHealthComponent::Heal(float HealAmount)
 	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
 }
 
+void UHealthComponent::SetFullHealth()
+{
+	int HealAmount = DefaultHealth - Health;
+	Health = DefaultHealth;
+	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
+}
+

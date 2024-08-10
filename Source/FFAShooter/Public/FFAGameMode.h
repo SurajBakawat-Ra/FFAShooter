@@ -26,5 +26,6 @@ protected:
 
 	void CheckAnyPlayerAlive();
 	void RestartDeadPlayers();
+
 	
 };
