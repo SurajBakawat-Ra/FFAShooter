@@ -21,6 +21,7 @@ public:
 	FVector_NetQuantize TraceTo;
 };
 
+class USoundCue;
 
 UCLASS()
 class FFASHOOTER_API ABaseWeapon : public AActor
