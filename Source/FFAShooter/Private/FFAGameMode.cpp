@@ -113,6 +113,20 @@ bool AFFAGameMode::CheckCharacterWithNamesExist(FString Name)
 	return false;
 }
 
+TArray<AShooterCharacter*> AFFAGameMode::GetSortedCharacterList()
+{
+	// Copy the original CharacterList to a new array
+	TArray<AShooterCharacter*> SortedCharacterList = CharacterList;
+
+	// Sort the array by some property, e.g., Score
+	SortedCharacterList.Sort([](const AShooterCharacter& A, const AShooterCharacter& B)
+		{
+			return A.CurrentPoints > B.CurrentPoints; // Sorting in descending order of score
+		});
+
+	return SortedCharacterList;
+}
+
 bool AFFAGameMode::CheckGameFinish(AShooterCharacter* ShooterCharacter)
 {
 	if (ShooterCharacter->CurrentPoints >= MaxPoints)

@@ -129,12 +129,15 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
+	UFUNCTION(BlueprintCallable)
 	void SetAllowInput(bool Allow);
 
 #pragma region GameModeVariables
 
+	UPROPERTY(BlueprintReadOnly)
 	FString InGameName;
 
+	UPROPERTY(BlueprintReadOnly)
 	int CurrentPoints;
 
 #pragma endregion

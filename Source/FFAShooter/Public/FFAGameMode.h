@@ -34,7 +34,7 @@ protected:
 	void ConfigureGameStart();
 	bool CheckCharacterWithNamesExist(FString Name);
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	int MaxPoints;
 
 	UPROPERTY()
@@ -42,11 +42,14 @@ protected:
 
 	UPROPERTY()
 	TArray<FString> CharacterNames{ "John", "Kevin", "Ryan", "Michael", "David", "James", "Daniel", "Matthew", "Andrew", "Christopher", "Joshua", "Joseph", "Robert", "Brian", "William", "Thomas", "Anthony", "Jason", "Charles", "Steven", "Mark", "Paul", "Timothy", "Richard", "Eric", "George", "Scott", "Justin", "Stephen", "Alexander" };
+	
+	UPROPERTY()
+	TArray<AShooterCharacter*> CharacterList;
 
 public:
 
-	UPROPERTY()
-	TArray<AShooterCharacter*> CharacterList;
+	UFUNCTION(BlueprintCallable)
+	TArray<AShooterCharacter*> GetSortedCharacterList();
 
 	bool CheckGameFinish(AShooterCharacter* ShooterCharacter);
 
