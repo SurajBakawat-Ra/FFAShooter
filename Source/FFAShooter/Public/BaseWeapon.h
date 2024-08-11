@@ -68,7 +68,7 @@ protected:
 	float BulletSpread;
 #pragma endregion
 
-#pragma region VFX
+#pragma region Effects
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName MuzzleSocketName;
@@ -87,6 +87,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	class UParticleSystem* TracerEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundCue* SoundCue;
 
 	void PlayFireEffects(const FVector& TracerEndPoint);
 	void PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint);

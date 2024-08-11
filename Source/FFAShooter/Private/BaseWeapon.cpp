@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "ShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Sound/SoundCue.h"
 
 ABaseWeapon::ABaseWeapon()
 {
@@ -95,6 +96,11 @@ void ABaseWeapon::Fire()
 
 		LastFiredTime = GetWorld()->TimeSeconds;
 		CurrentMagAmmo--;
+
+		if (SoundCue)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, SoundCue, GetActorLocation());
+		}
 		//UE_LOG(LogTemp, Log, TEXT("Fired a shot. CurrentMagAmmo: %d, CurrentAmmo: %d"), CurrentMagAmmo, CurrentAmmo);
 	}
 }
