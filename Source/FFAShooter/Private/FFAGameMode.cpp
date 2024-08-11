@@ -138,6 +138,8 @@ bool AFFAGameMode::CheckGameFinish(AShooterCharacter* ShooterCharacter)
 
 		UE_LOG(LogTemp, Warning, TEXT("Winner: %s"), *ShooterCharacter->InGameName);
 
+		Winner = ShooterCharacter;
+
 		OnCharacterWin.Broadcast(ShooterCharacter);
 
 		return true;

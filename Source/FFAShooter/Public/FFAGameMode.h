@@ -34,7 +34,7 @@ protected:
 	void ConfigureGameStart();
 	bool CheckCharacterWithNamesExist(FString Name);
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	int MaxPoints;
 
 	UPROPERTY()
@@ -57,4 +57,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnCharacterWin OnCharacterWin;
+
+	UPROPERTY(BlueprintReadOnly)
+	AShooterCharacter* Winner;
 };

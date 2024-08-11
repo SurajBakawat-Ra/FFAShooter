@@ -226,30 +226,33 @@ void AShooterCharacter::OnHealthChanged(UHealthComponent* HealthComponent, float
 
 void AShooterCharacter::SpawnPlayer()
 {
-	bDied = false;
-
-	OnSpawn.Broadcast(this);
-
-	HealthComp->SetFullHealth();
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	SetAllowInput(true);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-
-	CurrentWeapon = GetWorld()->SpawnActor<ABaseWeapon>(StarterWeaponClass, FVector::ZeroVector,
-		FRotator::ZeroRotator, SpawnParams);
-
-	if (CurrentWeapon)
+	if (!((AFFAGameMode*)GetWorld()->GetAuthGameMode())->Winner)
 	{
-		CurrentWeapon->SetOwner(this);
-		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-	}
+		bDied = false;
 
-	((AFFAGameMode*)GetWorld()->GetAuthGameMode())->SpawnAtRandomPoint(this);
+		OnSpawn.Broadcast(this);
+
+		HealthComp->SetFullHealth();
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		SetAllowInput(true);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+		CurrentWeapon = GetWorld()->SpawnActor<ABaseWeapon>(StarterWeaponClass, FVector::ZeroVector,
+			FRotator::ZeroRotator, SpawnParams);
+
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->SetOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+		}
+
+		((AFFAGameMode*)GetWorld()->GetAuthGameMode())->SpawnAtRandomPoint(this);
+	}
 }
 
 FVector AShooterCharacter::GetPawnViewLocation() const
